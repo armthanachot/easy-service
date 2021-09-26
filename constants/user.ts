@@ -1,0 +1,11 @@
+const ROLES = {
+    RESTAURANT: "RESTAURANT",
+    PUB_BAR: "PUB_BAR",
+    HOSPITAL: "HOSPITAL",
+    GAS_STATION: "GAS_STATION", 
+    GARAGE: "GARAGE", 
+}
+
+export {
+    ROLES
+}
