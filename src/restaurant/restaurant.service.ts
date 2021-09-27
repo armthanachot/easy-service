@@ -1,4 +1,4 @@
-import { findOne, genCode } from '@/utils/app'
+import { findOne, genCode, removeUselessKey } from '@/utils/app'
 import { Injectable } from '@nestjs/common'
 import { RestaurantModel } from './restaurant.model'
 import { getMethod } from 'service/api'
@@ -6,6 +6,9 @@ import { LIMIT_DESTINATION } from '@/constants/google_map'
 import { DISTANCE_MATRIX_URL, GOOGLE_MAP_API_KEY } from '@/constants/config'
 import { MSG } from '@/constants/labels/errmsg'
 import * as _ from 'lodash'
+import { USELESS_KEYS } from '@/constants/restaurant'
+import { CreateRestaurantDto } from './dto/request/create-restaurant.dto'
+import { FindRestaurantById } from './dto/response/find-restaurant-by-id.dto'
 @Injectable()
 export class RestaurantService {
   constructor(readonly restaurantModel: RestaurantModel) {}
@@ -22,7 +25,8 @@ export class RestaurantService {
     const services = await this.restaurantModel.findRestaurantServiceByRestaurantCode({ restaurantCode })
     const tables = await this.restaurantModel.findRestaurantTableByRestaurantCode({ restaurantCode })
     const bestSellers = await this.restaurantModel.findRestaurantBestSellerByRestaurantCode({ restaurantCode })
-    Object.assign(restaurant, { labors, services, tables, bestSellers })
+    const files = await this.restaurantModel.findRestaurantFileByRestaurantCode({ restaurantCode })
+    Object.assign(restaurant, { labors, services, tables, bestSellers, files })
     return restaurant
   }
 
@@ -79,25 +83,45 @@ export class RestaurantService {
     )
     return nearest
   }
-  async create(payload) {
-    payload.restaurantCode = await genCode()
+  async create(payload: CreateRestaurantDto) {
+    const restaurantCode = await genCode()
+    payload.restaurantCode = restaurantCode
+    const { labors, services, tables, bestSellers, files } = payload
+    await removeUselessKey(payload, USELESS_KEYS.CREATE)
+
     const created = await this.restaurantModel.create(payload)
+    const { insertId } = created
+    if (labors.length) {
+      for (const labor of labors) {
+        labor.restaurantCode = restaurantCode
+        const created = await this.restaurantModel.creatRestaurantLabor(labor)
+      }
+    }
+    if (services.length) {
+      for (const service of services) {
+        service.restaurantCode = restaurantCode
+        const created = await this.restaurantModel.createRestaurantService(service)
+      }
+    }
+    if (tables.length) {
+      for (const table of tables) {
+        table.restaurantCode = restaurantCode
+        const created = await this.restaurantModel.createRestaurantTable(table)
+      }
+    }
+    if (bestSellers.length) {
+      for (const bestSeller of bestSellers) {
+        bestSeller.restaurantCode = restaurantCode
+        const created = await this.restaurantModel.createRestaurantBestSeller(bestSeller)
+      }
+    }
+    if (files.length) {
+      for (const file of files) {
+        file.restaurantId = insertId
+        file.restaurantCode = restaurantCode
+        const created = await this.restaurantModel.createRestaurantFile(file)
+      }
+    }
     return payload.restaurantCode
-  }
-  async createRestaurantLabor(payload) {
-    const created = await this.restaurantModel.creatRestaurantLabor(payload)
-    return created
-  }
-  async createRestaurantService(payload) {
-    const created = await this.restaurantModel.createRestaurantService(payload)
-    return created
-  }
-  async createRestaurantTable(payload) {
-    const created = await this.restaurantModel.createRestaurantTable(payload)
-    return created
-  }
-  async createRestaurantBestSeller(payload) {
-    const created = await this.restaurantModel.createRestaurantBestSeller(payload)
-    return created
   }
 }

@@ -33,6 +33,15 @@ const RESTAURANT_BEST_SELLER = {
   description: joi.string().allow(null, '').required()
 }
 
+const RESTAURANT_FILE = {
+  fileField: joi.string().required(),
+  fileType: joi.string().required(),
+  fileExtension: joi.string().required(),
+  fileName: joi.string().required(),
+  fileSize: joi.number().required(),
+  filePath: joi.string().required()
+}
+
 const CREATE = joi.object({
   restaurantName: joi.string().required(),
   restaurantPhone: joi.string().required(),
@@ -54,7 +63,8 @@ const CREATE = joi.object({
   labors: joi.array().items(RESTAURANT_ADMIN).allow(null, '').required(),
   services: joi.array().items(RESTAURANT_SERVICE).allow(null, '').required(),
   tables: joi.array().items(RESTAURANT_TABLE).allow(null, '').required(),
-  bestSellers: joi.array().items(RESTAURANT_BEST_SELLER).allow(null, '').required()
+  bestSellers: joi.array().items(RESTAURANT_BEST_SELLER).allow(null, '').required(),
+  files: joi.array().items(RESTAURANT_FILE).allow(null, '').required()
 })
 
 export { CREATE }

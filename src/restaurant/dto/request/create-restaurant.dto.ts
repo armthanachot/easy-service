@@ -1,6 +1,7 @@
 import { RESTAURANT_TYPE } from '@/constants/restaurant'
 import { ApiProperty } from '@nestjs/swagger'
 import { RestaurantBestSellerDto } from './best-seller.dto'
+import { CreateRestaurantFileDto } from './files.dto'
 import { RestaurantLaborDto } from './labor.dto'
 import { RestaurantServiceDto } from './service.dto'
 import { RestaurantTableDto } from './table.dto'
@@ -52,15 +53,28 @@ export class CreateRestaurantDto {
   })
   restaurantType: string
 
-  @ApiProperty()
+  @ApiProperty({
+    type: [RestaurantLaborDto]
+  })
   labors: RestaurantLaborDto[]
 
-  @ApiProperty()
+  @ApiProperty({
+    type: [RestaurantServiceDto]
+  })
   services: RestaurantServiceDto[]
 
-  @ApiProperty()
+  @ApiProperty({
+    type: [RestaurantTableDto]
+  })
   tables: RestaurantTableDto[]
 
-  @ApiProperty()
+  @ApiProperty({
+    type: [RestaurantBestSellerDto]
+  })
   bestSellers: RestaurantBestSellerDto[]
+
+  @ApiProperty({
+    type: [CreateRestaurantFileDto]
+  })
+  files: CreateRestaurantFileDto[]
 }

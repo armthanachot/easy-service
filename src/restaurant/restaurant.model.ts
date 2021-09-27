@@ -60,6 +60,11 @@ export class RestaurantModel {
     return result
   }
 
+  async findRestaurantFileByRestaurantCode({ restaurantCode }) {
+    const result = await query(`SELECT filePath FROM restaurant_files WHERE restaurantCode = ?`, [restaurantCode])
+    return result
+  }
+
   async create(payload) {
     const result = await query(`INSERT INTO restaurants SET ?`, [payload])
     return result
@@ -82,6 +87,11 @@ export class RestaurantModel {
 
   async createRestaurantBestSeller(payload) {
     const result = await query(`INSERT INTO restaurant_best_seller SET ?`, [payload])
+    return result
+  }
+
+  async createRestaurantFile(payload) {
+    const result = await query(`INSERT INTO restaurant_files SET ?`, payload)
     return result
   }
 }
