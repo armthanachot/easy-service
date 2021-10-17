@@ -2,12 +2,16 @@ import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import * as dotenv from 'dotenv'
 import * as express from 'express'
+import * as cors from 'cors'
 import { STATIC_URL } from '@/constants/file'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 dotenv.config()
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
+  app.enableCors({
+    origin: '*'
+  })
   app.use(`/${STATIC_URL}`, express.static('public'))
   const config = new DocumentBuilder()
     .setTitle('Easy Service API')

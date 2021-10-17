@@ -83,6 +83,13 @@ export class RestaurantService {
     )
     return nearest
   }
+
+  async findTableBookingAmount(filter) {
+    const result = await this.restaurantModel.findTableBookingAmount(filter)
+    if (!result.length) return { tableAmount: 0 }
+    return await findOne(result)
+  }
+
   async create(payload: CreateRestaurantDto) {
     const restaurantCode = await genCode()
     payload.restaurantCode = restaurantCode
@@ -123,5 +130,59 @@ export class RestaurantService {
       }
     }
     return payload.restaurantCode
+  }
+
+  async creatRestaurantLabor(payload) {
+    const created = await this.restaurantModel.creatRestaurantLabor(payload)
+    return created
+  }
+
+  async createRestaurantService(payload) {
+    const created = await this.restaurantModel.createRestaurantService(payload)
+    return created
+  }
+
+  async createRestaurantTable(payload) {
+    const created = await this.restaurantModel.createRestaurantTable(payload)
+    return created
+  }
+
+  async createRestaurantBestSeller(payload) {
+    const created = await this.restaurantModel.createRestaurantBestSeller(payload)
+    return created
+  }
+
+  async createRestaurantFile(payload) {
+    const created = await this.restaurantModel.createRestaurantFile(payload)
+    return created
+  }
+
+  async update({ payload, restaurant_ref }) {
+    const updated = await this.restaurantModel.update({ payload, restaurant_ref })
+  }
+
+  async deleteRestaurantLabor(ref) {
+    const deleted = await this.restaurantModel.deleteRestaurantLabor(ref)
+    return deleted
+  }
+
+  async deleteRestaurantService(ref) {
+    const deleted = await this.restaurantModel.deleteRestaurantService(ref)
+    return deleted
+  }
+
+  async deleteRestaurantTable(ref) {
+    const deleted = await this.restaurantModel.deleteRestaurantTable(ref)
+    return deleted
+  }
+
+  async deleteRestaurantBestSeller(ref) {
+    const deleted = await this.restaurantModel.deleteRestaurantBestSeller(ref)
+    return deleted
+  }
+
+  async deleteRestaurantFile(ref) {
+    const deleted = await this.restaurantModel.deleteRestaurantFile(ref)
+    return deleted
   }
 }

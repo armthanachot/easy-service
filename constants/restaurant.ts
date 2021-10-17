@@ -37,7 +37,8 @@ const TABLE_SIZE = {
   XL: 'XL'
 }
 const USELESS_KEYS = {
-  CREATE: ['labors', 'services', 'tables', 'bestSellers', 'files']
+  CREATE: ['labors', 'services', 'tables', 'bestSellers', 'files'],
+  UPDATE: ['labors', 'services', 'tables', 'bestSellers', 'files'],
 }
 const FILE_TOPIC = 'restaurant'
 export { RESTAURANT_TYPE, POSITION, SERVICE, BOOKING_METHOD, TABLE_SIZE, USELESS_KEYS, FILE_TOPIC }

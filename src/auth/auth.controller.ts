@@ -34,7 +34,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('/signup')
-  async create(@Req() req, @Res() res: Response, @Body(new ValidationPipe(SIGNUP)) payload: UserSignupDto) {
+  async signup(@Req() req, @Res() res: Response, @Body(new ValidationPipe(SIGNUP)) payload: UserSignupDto) {
     try {
       await beginTransaction()
       if (payload.password !== payload.confirmPassword)
@@ -47,7 +47,6 @@ export class AuthController {
       payload.salt = salt
       payload.userCode = genCode()
       await this.authService.signup(payload)
-      const text = 'xxxxxxxxxxxxxxxxxxxxx'
       await commit()
       return res.status(StatusCodes.OK).json(responseMessages(StatusCodes.OK))
     } catch (error) {

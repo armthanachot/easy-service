@@ -26,7 +26,7 @@ import { responseMessages } from '@/utils/response'
 import { genCode, removeUselessKey } from '@/utils/app'
 
 /** PIPE | SCHEMA */
-import { CREATE } from './restaurant.schema'
+import { RESTAURANT_SCHEMA } from './restaurant.schema'
 import { ValidationPipe } from '../validation.pipe'
 
 /** DB OPTION */
@@ -218,7 +218,7 @@ export class RestaurantController {
       { storage }
     )
   )
-  async uploadFiles(@Req() req: any, @Res() res: Response) {
+  async uploadFile(@Req() req: any, @Res() res: Response) {
     try {
       const uploaded = await fileUpload(FILE_TOPIC, await genCode(), req.files)
       const files = await handleFileFields(uploaded)
@@ -231,7 +231,7 @@ export class RestaurantController {
   }
 
   @Post('')
-  async create(@Req() req, @Res() res, @Body(new ValidationPipe(CREATE)) payload: CreateRestaurantDto) {
+  async create(@Req() req, @Res() res, @Body(new ValidationPipe(RESTAURANT_SCHEMA)) payload: CreateRestaurantDto) {
     try {
       await beginTransaction()
       const created = await this.restaurantService.create(payload)
@@ -240,6 +240,60 @@ export class RestaurantController {
     } catch (error) {
       console.log(error)
       await rollback()
+      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(responseMessages(StatusCodes.INTERNAL_SERVER_ERROR))
+    }
+  }
+
+  @Put(':restaurant_ref')
+  async update(@Req() req, @Res() res, @Param() param, @Body() payload) {
+    try {
+      await beginTransaction()
+      const { labors, services, tables, files } = payload
+      const { restaurant_ref } = param
+      const has_restaurant = await this.restaurantService.findById({
+        restaurantId: restaurant_ref,
+        status: STATUS.ACTIVE
+      })
+      await removeUselessKey(payload, USELESS_KEYS.UPDATE)
+      await this.restaurantService.update({ payload, restaurant_ref })
+      if (labors.length) {
+        await this.restaurantService.deleteRestaurantLabor({ restaurant_ref })
+        for (const labor of labors) {
+          labor.restaurantCode = has_restaurant.restaurantCode
+          await this.restaurantService.creatRestaurantLabor(labor)
+        }
+      }
+      if (services.length) {
+        await this.restaurantService.deleteRestaurantService({ restaurant_ref })
+        for (const service of services) {
+          service.restaurantCode = has_restaurant.restaurantCode
+          await this.restaurantService.createRestaurantService(service)
+        }
+      }
+      let filter = {}
+      if (tables.length) {
+        await this.restaurantService.deleteRestaurantTable({ restaurant_ref })
+        for (const table of tables) {
+          filter = { restaurant_ref, tableSize: table.tableSize, status: STATUS.ACTIVE }
+          const has_booking = await this.restaurantService.findTableBookingAmount(filter)
+          table.tableAmount -= has_booking.tableAmount
+          table.restaurantCode = has_restaurant.restaurantCode
+          await this.restaurantService.createRestaurantTable(table)
+        }
+      }
+      if (files.length) {
+        await this.restaurantService.deleteRestaurantFile({ restaurant_ref })
+        for (const file of files) {
+          file.restaurantId = has_restaurant.restaurantId
+          file.restaurantCode = has_restaurant.restaurantCode
+          await this.restaurantService.createRestaurantFile(file)
+        }
+      }
+      await commit()
+      return res.status(StatusCodes.OK).json(responseMessages(StatusCodes.OK))
+    } catch (error) {
+      await rollback()
+      console.log(error)
       return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(responseMessages(StatusCodes.INTERNAL_SERVER_ERROR))
     }
   }

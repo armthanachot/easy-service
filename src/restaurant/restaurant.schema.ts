@@ -42,7 +42,7 @@ const RESTAURANT_FILE = {
   filePath: joi.string().required()
 }
 
-const CREATE = joi.object({
+const RESTAURANT_SCHEMA = joi.object({
   restaurantName: joi.string().required(),
   restaurantPhone: joi.string().required(),
   restaurantLine: joi.string().required(),
@@ -67,4 +67,4 @@ const CREATE = joi.object({
   files: joi.array().items(RESTAURANT_FILE).allow(null, '').required()
 })
 
-export { CREATE }
+export { RESTAURANT_SCHEMA }

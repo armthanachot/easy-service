@@ -25,8 +25,8 @@ export class RestaurantModel {
 
   async findById({ restaurantId, status }) {
     const result = await query(
-      `SELECT restaurantId,restaurantCode,restaurantName,restaurantPhone,restaurantLine,restaurantEmail,directorName,fullAddress,provinceId,districtId,subDistrictId,postcode,latitude,longitude,branchNumber,restaurantType FROM restaurants WHERE restaurantId = ? AND status = ?`,
-      [restaurantId, status]
+      `SELECT restaurantId,restaurantCode,restaurantName,restaurantPhone,restaurantLine,restaurantEmail,directorName,fullAddress,provinceId,districtId,subDistrictId,postcode,latitude,longitude,branchNumber,restaurantType FROM restaurants WHERE (restaurantId = ? OR restaurantCode = ?) AND status = ?`,
+      [restaurantId, restaurantId, status]
     )
     return result
   }
@@ -65,6 +65,14 @@ export class RestaurantModel {
     return result
   }
 
+  async findTableBookingAmount({ restaurant_ref, tableSize, status }) {
+    const result = await query(
+      `SELECT SUM(tableAmount) AS tableAmount FROM restaurant_table_booking WHERE restaurantCode = ? AND tableSize = ? AND status = ?`, 
+      [restaurant_ref, tableSize, status]
+    )
+    return result
+  }
+
   async create(payload) {
     const result = await query(`INSERT INTO restaurants SET ?`, [payload])
     return result
@@ -92,6 +100,40 @@ export class RestaurantModel {
 
   async createRestaurantFile(payload) {
     const result = await query(`INSERT INTO restaurant_files SET ?`, payload)
+    return result
+  }
+
+  async update({ payload, restaurant_ref }) {
+    const result = await query(`UPDATE restaurants SET ? WHERE (restaurantId = ? OR restaurantCode = ?)`, [
+      payload,
+      restaurant_ref,
+      restaurant_ref
+    ])
+    return result
+  }
+
+  async deleteRestaurantLabor({ restaurant_ref }) {
+    const result = await query(`DELETE FROM restaurant_labor WHERE restaurantCode = ?`, [restaurant_ref])
+    return result
+  }
+
+  async deleteRestaurantService({ restaurant_ref }) {
+    const result = await query(`DELETE FROM restaurant_services WHERE restaurantCode = ?`, [restaurant_ref])
+    return result
+  }
+
+  async deleteRestaurantTable({ restaurant_ref }) {
+    const result = await query(`DELETE FROM restaurant_tables WHERE restaurantCode = ?`, [restaurant_ref])
+    return result
+  }
+
+  async deleteRestaurantBestSeller({ restaurant_ref }) {
+    const result = await query(`DELETE FROM restaurant_best_seller WHERE restaurantCode = ?`, [restaurant_ref])
+    return result
+  }
+
+  async deleteRestaurantFile({ restaurant_ref }) {
+    const result = await query(`DELETE FROM restaurant_files WHERE restaurantCode = ?`, [restaurant_ref])
     return result
   }
 }
