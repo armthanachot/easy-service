@@ -42,6 +42,8 @@ import { fileUpload, handleFileFields } from '@/utils/file'
 /** UTILS */
 import { genCode } from '@/utils/app'
 import { beginTransaction, rollback, commit } from '@/databases/db_connection'
+import { appendSpreadSheetValues, getGoogleSheetConnection, updateSpreadSheetValues } from '@/utils/spreadsheet'
+import { SHEET_NAME, USER_SPREAD_SHEET_ID, VALUE_INPUT_OPTION } from '@/constants/spreadsheet'
 
 const storage = memoryStorage()
 
@@ -94,13 +96,33 @@ export class ReserveTableController {
   async create(@Req() req, @Res() res, @Param() param, @Body(new ValidationPipe(CREATE)) payload) {
     try {
       await beginTransaction()
-      const has_restaurant = await this.reserveTableService.findRestaurantByCode(payload.restaurantCode)
+      const filter = {
+        restaurantCode: payload.restaurantCode,
+        tableSize: payload.tableSize,
+        status: STATUS.ACTIVE
+      }
+      const has_restaurant = await this.reserveTableService.findRestaurantByCode(filter)
       if (!has_restaurant) {
         await rollback()
         return res.status(StatusCodes.NOT_FOUND).json(responseMessages(StatusCodes.NOT_FOUND, MSG.RESTAURANT.NOT_FOUND))
       }
+      if (!has_restaurant.tables.tableAmount) {
+        await rollback()
+        return res
+          .status(StatusCodes.BAD_REQUEST)
+          .json(responseMessages(StatusCodes.BAD_REQUEST, MSG.RESERVE_TABLE.FULL))
+      }
 
-      const { files } = payload
+      const {
+        customerName,
+        customerPhone,
+        restaurantCode,
+        tableSize,
+        tableAmount,
+        bookingDateTime,
+        bookingMethod,
+        files
+      } = payload
       if (!files.length) {
         await rollback()
         return res
@@ -123,7 +145,31 @@ export class ReserveTableController {
         operator: OPERATOR.DECREASE
       }
       await this.reserveTableService.updateTableAmount(update_table_amount)
-      await commit()
+      await rollback()
+
+      const { googleSheets } = await getGoogleSheetConnection()
+      await appendSpreadSheetValues({
+        googleSheets,
+        spreadsheetId: USER_SPREAD_SHEET_ID,
+        range: SHEET_NAME.BOOKING,
+        valueInputOption: VALUE_INPUT_OPTION.USER_ENTERED,
+        values: [
+          [
+            customerName,
+            customerPhone,
+            restaurantCode,
+            tableSize,
+            tableAmount,
+            bookingDateTime,
+            bookingMethod,
+            booking_number,
+            JSON.stringify(files),
+            'NO',
+            ''
+          ]
+        ]
+      })
+
       return res.status(StatusCodes.CREATED).json(responseMessages(StatusCodes.CREATED, null))
     } catch (error) {
       console.log(error)
@@ -153,6 +199,18 @@ export class ReserveTableController {
         operator: OPERATOR.INCREASE
       })
       await commit()
+      const { googleSheets } = await getGoogleSheetConnection()
+      // await updateSpreadSheetValues({
+      //   googleSheets,
+      //   spreadsheetId: USER_SPREAD_SHEET_ID,
+      //   range: `${SHEET_NAME.BOOKING}!I2`, //! อาจต้องใช้ get เข้ามาช่วย
+      //   valueInputOption: VALUE_INPUT_OPTION.USER_ENTERED,
+      //   values: [
+      //     [
+      //       '456456'
+      //     ]
+      //   ]
+      // })
       return res.status(StatusCodes.OK).json(responseMessages(StatusCodes.OK, null))
     } catch (error) {
       console.log(error)

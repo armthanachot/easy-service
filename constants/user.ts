@@ -4,6 +4,7 @@ const ROLES = {
     HOSPITAL: "HOSPITAL",
     GAS_STATION: "GAS_STATION", 
     GARAGE: "GARAGE", 
+    NORMAL_USER: "NORMAL_USER", 
 }
 
 export {

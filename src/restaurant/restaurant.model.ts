@@ -1,12 +1,13 @@
 import { query } from '@/databases/db_connection'
-
 export class RestaurantModel {
   async findAll({ STARTPAGE, PERPAGE, SORT_BY, SORT, SEARCH, STATUS }) {
     const SEARCH_CONDITION = SEARCH
-      ? ` AND (restaurantCode LIKE '%${SEARCH}%' OR restaurantName LIKE '%${SEARCH}%')`
+      ? ` AND (restaurants.restaurantCode LIKE '%${SEARCH}%' OR restaurants.restaurantName LIKE '%${SEARCH}%')`
       : ``
     const result = await query(
-      `SELECT restaurantId,restaurantCode,restaurantName,restaurantPhone,restaurantLine,restaurantEmail,directorName,fullAddress,provinceId,districtId,subDistrictId,postcode,latitude,longitude,branchNumber,restaurantType FROM restaurants WHERE status = ? ${SEARCH_CONDITION} GROUP BY restaurants.restaurantId ORDER BY ${SORT_BY} ${SORT} LIMIT ?, ?`,
+      `SELECT restaurants.restaurantId,restaurants.restaurantCode,restaurants.restaurantName,restaurants.restaurantPhone,restaurants.restaurantLine,restaurants.restaurantEmail,restaurants.directorName,restaurants.fullAddress,restaurants.provinceId,restaurants.districtId,restaurants.subDistrictId,restaurants.postcode,restaurants.latitude,restaurants.longitude,restaurants.branchNumber,restaurants.restaurantType,restaurant_files.filePath AS profilePath FROM restaurants 
+      LEFT JOIN restaurant_files ON restaurants.restaurantId = restaurant_files.restaurantId 
+      WHERE restaurants.status = ? AND (restaurant_files.fileType = 'XL' OR restaurant_files.fileType IS NULL) ${SEARCH_CONDITION} GROUP BY restaurants.restaurantId ORDER BY ${SORT_BY} ${SORT} LIMIT ?, ?`,
       [STATUS, STARTPAGE, PERPAGE]
     )
     return result

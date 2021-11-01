@@ -28,7 +28,14 @@ import { beginTransaction, commit, rollback } from '@/databases/db_connection'
 import { genCode } from '@/utils/app'
 import { UserLoginDto } from './dto/request/login.dto'
 import { STATUS } from '@/constants/status'
-
+import { SHEET_NAME, USER_SPREAD_SHEET_ID, VALUE_INPUT_OPTION } from '@/constants/spreadsheet'
+import {
+  auth,
+  getGoogleSheetConnection,
+  getSpreadSheetMetaData,
+  getGoogleSheetRows,
+  appendSpreadSheetValues
+} from '@/utils/spreadsheet'
 @Controller('')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -47,6 +54,15 @@ export class AuthController {
       payload.salt = salt
       payload.userCode = genCode()
       await this.authService.signup(payload)
+      const { googleSheets } = await getGoogleSheetConnection()
+      const { email, fullName, userName, userRole } = payload
+      await appendSpreadSheetValues({
+        googleSheets,
+        spreadsheetId: USER_SPREAD_SHEET_ID,
+        range: SHEET_NAME.USER,
+        valueInputOption: VALUE_INPUT_OPTION.USER_ENTERED,
+        values: [[email, fullName, userName, userRole]]
+      })
       await commit()
       return res.status(StatusCodes.OK).json(responseMessages(StatusCodes.OK))
     } catch (error) {

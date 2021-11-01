@@ -16,9 +16,9 @@ export class ReserveTableModel {
     return result
   }
 
-  async findRestaurantByCode(restaurant_code) {
-    const result = await query(`SELECT restaurantId, restaurantName FROM restaurants WHERE restaurantCode = ?`, [
-      restaurant_code
+  async findRestaurantByCode({restaurantCode,status}) {
+    const result = await query(`SELECT restaurantId, restaurantName FROM restaurants WHERE restaurantCode = ? AND status = ?`, [
+      restaurantCode,status
     ])
     return result
   }
@@ -27,6 +27,14 @@ export class ReserveTableModel {
     const result = await query(
       `SELECT tableSize, tableAmount FROM restaurant_table_booking  WHERE restaurantTableBookingId = ? AND restaurantCode = ? AND status = ?`,
       [booking_id, restaurant_code, status]
+    )
+    return result
+  }
+
+  async findRestaurantTable({ restaurantCode, tableSize, status }) {
+    const result = await query(
+      `SELECT tableSize, tableAmount, description FROM restaurant_tables WHERE restaurantCode = ? AND tableSize = ? AND status = ?`,
+      [restaurantCode, tableSize, status]
     )
     return result
   }

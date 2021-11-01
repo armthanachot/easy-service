@@ -23,8 +23,19 @@ const generateJWT = async (payload) => {
     return { token, expiresIn }
 }
 
+const verifyToken = async (token) => {
+    try {
+        const verified = await jwt.verify(token, PRIVATE_KEY)
+        return verified
+    } catch (error) {
+        console.log(error.message);
+        return { status: false, message: error.message }
+    }
+}
+
 export {
     passwordHash,
     verifyPassword,
-    generateJWT
+    generateJWT,
+    verifyToken
 }

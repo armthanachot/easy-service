@@ -16,4 +16,8 @@ export class AuthModel {
     const result = await query(`UPDATE users SET lastToken = ? WHERE userId = ?`, [token, userId])
     return result
   }
+  async findJWTToken({ userCode, token }) {
+    const result = await query(`SELECT lastToken FROM users WHERE userCode = ? AND lastToken = ?`, [userCode, token])
+    return result
+  }
 }

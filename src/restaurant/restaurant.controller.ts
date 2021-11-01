@@ -74,6 +74,14 @@ import { FindNearestRestaurantDto } from './dto/response/find-nearest-restaurant
 import { FindNearestRestaurantQueryDto } from './dto/request/query/find-nearest-restaurant.dto'
 import { RestaurantFileUploadDto } from './dto/request/file-upload.dto'
 import { FileUploadResponseDto } from './dto/response/file-upload.dto'
+import { USER_SPREAD_SHEET_ID } from '@/constants/spreadsheet'
+import {
+  auth,
+  getGoogleSheetConnection,
+  getSpreadSheetMetaData,
+  getGoogleSheetRows,
+  appendSpreadSheetValues
+} from '@/utils/spreadsheet'
 @ApiTags('Restaurant')
 @ApiBearerAuth()
 @ApiExtraModels(
@@ -89,7 +97,7 @@ import { FileUploadResponseDto } from './dto/response/file-upload.dto'
 @ApiBadRequestResponse({ description: getReasonPhrase(400), type: BaseResponseDto })
 @ApiNotFoundResponse({ description: getReasonPhrase(404), type: BaseResponseDto })
 @ApiInternalServerErrorResponse({ description: getReasonPhrase(500), type: BaseResponseDto })
-@Controller('restaurant')
+@Controller('restaurants')
 export class RestaurantController {
   constructor(private readonly restaurantService: RestaurantService) {}
 
@@ -126,6 +134,7 @@ export class RestaurantController {
         SEARCH: search,
         STATUS: STATUS.ACTIVE
       }
+
       const restaurants = await this.restaurantService.findAll(filter)
       return res.status(StatusCodes.OK).json(responseMessages(StatusCodes.OK, null, restaurants))
     } catch (error) {

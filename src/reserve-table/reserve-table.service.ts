@@ -11,10 +11,13 @@ export class ReserveTableService {
         return result
     }
 
-    async findRestaurantByCode(restaurant_code){
-        const restaurant = await this.reserveTableModel.findRestaurantByCode(restaurant_code)
+    async findRestaurantByCode(filter){
+        let restaurant = await this.reserveTableModel.findRestaurantByCode(filter)
         if(!restaurant.length) return false
-        return await findOne(restaurant)
+        restaurant = await findOne(restaurant)
+        const tables = await findOne(await this.reserveTableModel.findRestaurantTable(filter) )
+        restaurant.tables = tables
+        return restaurant
     }
 
     async findBookingByBookingId(filter){
